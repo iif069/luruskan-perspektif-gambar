@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Luruskan Perspektif</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light;--ink:#14202B;--mut:#3A4854;--line:#B7C0C9;--bg:#EEF1F4;--card:#fff;--area:#DDE3E9;--ac:#7B29BA;--tint:#F1E6F9;--pt:#E8590C}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*:before,*:after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Sora',system-ui,sans-serif;min-height:100vh}
+header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:12px 24px;background:var(--card);border-bottom:1px solid #D5DBE1}
+h1{margin:0;font-size:20px;display:flex;align-items:center;gap:12px}
+button{min-height:44px;padding:0 18px;border-radius:8px;border:1px solid var(--line);background:#fff;color:var(--ink);font:500 14px 'Sora',sans-serif;cursor:pointer}
+button.pri{background:var(--ac);border-color:var(--ac);color:#fff}
+button.out{border-color:var(--ac);color:var(--ac)}
+button.sel{border:2px solid var(--ac);background:var(--tint);color:var(--ac);font-weight:700}
+button:disabled{opacity:.45;cursor:not-allowed}
+main{display:flex;gap:24px;padding:24px;flex-wrap:wrap}
+#stage{flex:1 1 520px;min-width:0;background:var(--area);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:12px}
+#hint{font-size:14px;color:var(--mut)}
+#wrap{position:relative;display:flex;justify-content:center;align-items:center;min-height:360px}
+#view{max-width:100%;touch-action:none;background:#fff;border-radius:4px;display:none}
+#empty{text-align:center;color:var(--mut);padding:60px 20px;border:2px dashed var(--line);border-radius:12px;width:100%}
+#loupe{position:absolute;width:120px;height:120px;border-radius:50%;border:2px solid var(--ink);background:#fff;display:none;pointer-events:none;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+aside{flex:0 0 340px;max-width:100%;background:var(--card);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:18px}
+.step{font-size:14px;color:var(--mut)}
+label.r{display:flex;align-items:center;gap:12px;min-height:40px;font-size:15px}
+.row{display:flex;gap:12px}
+.f{flex:1;display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--mut)}
+input[type=number]{height:44px;padding:0 12px;border:1px solid var(--line);border-radius:8px;font:15px 'Sora',sans-serif;width:100%}
+#prev{height:130px;background:var(--area);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--mut)}
+#prev canvas{max-width:100%;max-height:100%}
+#info{font-size:12px;color:var(--mut)}
+</style>
+</head>
+<body>
+<header>
+<h1><svg width="28" height="28" viewBox="0 0 28 28" fill="none" stroke="#7B29BA" stroke-width="2" aria-hidden="true"><polygon points="4,8 24,4 22,24 6,20"/></svg>Luruskan Perspektif</h1>
+<div class="row"><button class="out" id="bPaste">Tempel dari clipboard</button><button class="pri" id="bUp">Unggah foto</button><input type="file" id="file" accept="image/*" hidden></div>
+</header>
+<main>
+<section id="stage">
+<div id="hint">Langkah 1: unggah foto, lalu geser 4 titik oranye ke pojok objek</div>
+<div id="wrap">
+<div id="empty">Unggah foto, tempel (Ctrl+V), atau seret file ke sini</div>
+<canvas id="view"></canvas>
+<canvas id="loupe" width="120" height="120"></canvas>
+</div>
+</section>
+<aside>
+<div class="step">Langkah 2: pilih ukuran hasil</div>
+<div>
+<label class="r"><input type="radio" name="uk" value="auto" checked> Otomatis (ikut proporsi objek)</label>
+<label class="r"><input type="radio" name="uk" value="a4"> A4 (1240 × 1754 px)</label>
+<label class="r"><input type="radio" name="uk" value="a5"> A5 (874 × 1240 px)</label>
+<label class="r"><input type="radio" name="uk" value="cus"> Custom (px)</label>
+</div>
+<div class="row">
+<div class="f"><label for="cw">Lebar</label><input type="number" id="cw" value="1200" min="50" max="6000"></div>
+<div class="f"><label for="ch">Tinggi</label><input type="number" id="ch" value="800" min="50" max="6000"></div>
+</div>
+<div class="row"><button id="bRot" style="flex:1">Putar 90°</button><button id="bRes" style="flex:1">Reset titik</button></div>
+<div><div class="step" style="margin-bottom:8px">Pratinjau hasil</div><div id="prev">Belum ada foto</div></div>
+<div class="step">Langkah 3: unduh</div>
+<div class="row"><button id="fPng" class="sel" style="flex:1">PNG</button><button id="fJpg" style="flex:1">JPG</button></div>
+<button class="pri" id="bDl" style="min-height:52px;font-size:16px;font-weight:700" disabled>Unduh hasil</button>
+<div id="info"></div>
+</aside>
+</main>
+<script>
+(function(){
+var src=null,pts=[],fmt='png',scale=1,drag=-1;
+var $=function(i){return document.getElementById(i)};
+var view=$('view'),vctx=view.getContext('2d'),loupe=$('loupe'),lctx=loupe.getContext('2d');
+
+function load(img){
+  var c=document.createElement('canvas');
+  var m=Math.min(1,4000/Math.max(img.width,img.height));
+  c.width=Math.round(img.width*m);c.height=Math.round(img.height*m);
+  c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+  src=c;resetPts();$('empty').style.display='none';view.style.display='block';
+  $('bDl').disabled=false;$('hint').textContent='Langkah 1: geser 4 titik oranye ke pojok objek';fit();
+}
+function fromBlob(b){
+  if(!b)return;var u=URL.createObjectURL(b),i=new Image();
+  i.onload=function(){load(i);URL.revokeObjectURL(u)};i.src=u;
+}
+function resetPts(){
+  var w=src.width,h=src.height,mx=w*.15,my=h*.15;
+  pts=[{x:mx,y:my},{x:w-mx,y:my},{x:w-mx,y:h-my},{x:mx,y:h-my}];
+}
+function fit(){
+  if(!src)return;
+  var maxW=Math.max(280,$('wrap').clientWidth-4),maxH=Math.max(360,window.innerHeight-260);
+  scale=Math.min(maxW/src.width,maxH/src.height,1);
+  view.width=Math.round(src.width*scale);view.height=Math.round(src.height*scale);
+  draw();preview();
+}
+function draw(){
+  vctx.clearRect(0,0,view.width,view.height);
+  vctx.drawImage(src,0,0,view.width,view.height);
+  vctx.beginPath();
+  pts.forEach(function(p,i){var x=p.x*scale,y=p.y*scale;i?vctx.lineTo(x,y):vctx.moveTo(x,y)});
+  vctx.closePath();vctx.fillStyle='rgba(123,41,186,.18)';vctx.fill();
+  vctx.strokeStyle='#E8590C';vctx.lineWidth=2.5;vctx.stroke();
+  pts.forEach(function(p){
+    vctx.beginPath();vctx.arc(p.x*scale,p.y*scale,12,0,7);
+    vctx.fillStyle='#E8590C';vctx.fill();vctx.lineWidth=3;vctx.strokeStyle='#fff';vctx.stroke();
+  });
+}
+function pos(e){
+  var r=view.getBoundingClientRect();
+  return{x:(e.clientX-r.left)*view.width/r.width/scale,y:(e.clientY-r.top)*view.height/r.height/scale};
+}
+view.addEventListener('pointerdown',function(e){
+  if(!src)return;var p=pos(e),best=-1,bd=1e9;
+  pts.forEach(function(q,i){var d=Math.hypot(q.x-p.x,q.y-p.y)*scale;if(d<bd){bd=d;best=i}});
+  if(bd<40){drag=best;view.setPointerCapture(e.pointerId);move(e)}
+});
+view.addEventListener('pointermove',function(e){if(drag>=0)move(e)});
+function end(){drag=-1;loupe.style.display='none'}
+view.addEventListener('pointerup',end);view.addEventListener('pointercancel',end);
+function move(e){
+  var p=pos(e);
+  pts[drag]={x:Math.max(0,Math.min(src.width,p.x)),y:Math.max(0,Math.min(src.height,p.y))};
+  draw();showLoupe(pts[drag],e);preview();
+}
+function showLoupe(p,e){
+  var w=$('wrap').getBoundingClientRect(),r=60;
+  lctx.clearRect(0,0,120,120);
+  var z=4,sw=120/z;
+  lctx.drawImage(src,p.x-sw/2,p.y-sw/2,sw,sw,0,0,120,120);
+  lctx.strokeStyle='#E8590C';lctx.lineWidth=1.5;
+  lctx.beginPath();lctx.moveTo(60,38);lctx.lineTo(60,82);lctx.moveTo(38,60);lctx.lineTo(82,60);lctx.stroke();
+  var lx=e.clientX-w.left-r,ly=e.clientY-w.top-r*2-50;
+  if(ly<0)ly=e.clientY-w.top+50;
+  loupe.style.left=Math.max(0,Math.min(w.width-120,lx))+'px';loupe.style.top=ly+'px';loupe.style.display='block';
+}
+function solve(A,b){
+  var n=8,i,j,k;
+  for(i=0;i<n;i++){
+    var m=i;for(j=i+1;j<n;j++)if(Math.abs(A[j][i])>Math.abs(A[m][i]))m=j;
+    var t=A[i];A[i]=A[m];A[m]=t;t=b[i];b[i]=b[m];b[m]=t;
+    for(j=i+1;j<n;j++){var f=A[j][i]/A[i][i];for(k=i;k<n;k++)A[j][k]-=f*A[i][k];b[j]-=f*b[i]}
+  }
+  var x=new Array(n);
+  for(i=n-1;i>=0;i--){var s=b[i];for(j=i+1;j<n;j++)s-=A[i][j]*x[j];x[i]=s/A[i][i]}
+  return x;
+}
+function autoSize(){
+  var d=function(a,b){return Math.hypot(a.x-b.x,a.y-b.y)};
+  return{w:Math.max(20,Math.round((d(pts[0],pts[1])+d(pts[3],pts[2]))/2)),h:Math.max(20,Math.round((d(pts[0],pts[3])+d(pts[1],pts[2]))/2))};
+}
+function outSize(){
+  var v=document.querySelector('input[name=uk]:checked').value;
+  if(v==='a4')return{w:1240,h:1754};
+  if(v==='a5')return{w:874,h:1240};
+  if(v==='cus')return{w:Math.max(20,Math.min(6000,+$('cw').value||1200)),h:Math.max(20,Math.min(6000,+$('ch').value||800))};
+  return autoSize();
+}
+function warp(W,H){
+  var o=document.createElement('canvas');o.width=W;o.height=H;
+  var dst=[[0,0],[W,0],[W,H],[0,H]],A=[],b=[],i;
+  for(i=0;i<4;i++){
+    var x=dst[i][0],y=dst[i][1],u=pts[i].x,v=pts[i].y;
+    A.push([x,y,1,0,0,0,-x*u,-y*u]);b.push(u);
+    A.push([0,0,0,x,y,1,-x*v,-y*v]);b.push(v);
+  }
+  var h=solve(A,b),sw=src.width,sh=src.height;
+  var sd=src.getContext('2d').getImageData(0,0,sw,sh).data;
+  var ctx=o.getContext('2d'),out=ctx.createImageData(W,H),od=out.data;
+  for(var py=0;py<H;py++)for(var px=0;px<W;px++){
+    var w=h[6]*px+h[7]*py+1,sx=(h[0]*px+h[1]*py+h[2])/w,sy=(h[3]*px+h[4]*py+h[5])/w;
+    var k=(py*W+px)*4;
+    if(sx<0||sy<0||sx>sw-1||sy>sh-1){od[k]=od[k+1]=od[k+2]=255;od[k+3]=255;continue}
+    var x0=sx|0,y0=sy|0,x1=Math.min(x0+1,sw-1),y1=Math.min(y0+1,sh-1),fx=sx-x0,fy=sy-y0;
+    var a=(y0*sw+x0)*4,c=(y0*sw+x1)*4,d=(y1*sw+x0)*4,e=(y1*sw+x1)*4;
+    for(var ch=0;ch<4;ch++){
+      od[k+ch]=(sd[a+ch]*(1-fx)+sd[c+ch]*fx)*(1-fy)+(sd[d+ch]*(1-fx)+sd[e+ch]*fx)*fy;
+    }
+  }
+  ctx.putImageData(out,0,0);return o;
+}
+var pend=false;
+function preview(){
+  if(!src||pend)return;pend=true;
+  requestAnimationFrame(function(){
+    pend=false;var s=outSize(),m=Math.min(1,260/Math.max(s.w,s.h));
+    var c=warp(Math.max(8,Math.round(s.w*m)),Math.max(8,Math.round(s.h*m)));
+    var p=$('prev');p.textContent='';p.appendChild(c);
+    $('info').textContent='Ukuran hasil: '+s.w+' × '+s.h+' px';
+  });
+}
+function rotate(){
+  if(!src)return;var h=src.height,c=document.createElement('canvas');
+  c.width=src.height;c.height=src.width;var x=c.getContext('2d');
+  x.translate(c.width,0);x.rotate(Math.PI/2);x.drawImage(src,0,0);
+  pts=pts.map(function(p){return{x:h-p.y,y:p.x}});src=c;fit();
+}
+function setFmt(f){fmt=f;$('fPng').className=f==='png'?'sel':'';$('fJpg').className=f==='jpg'?'sel':''}
+$('fPng').onclick=function(){setFmt('png')};$('fJpg').onclick=function(){setFmt('jpg')};
+$('bRot').onclick=rotate;
+$('bRes').onclick=function(){if(src){resetPts();draw();preview()}};
+$('bUp').onclick=function(){$('file').click()};
+$('file').onchange=function(e){fromBlob(e.target.files[0]);e.target.value=''};
+document.querySelectorAll('input[name=uk],#cw,#ch').forEach(function(el){el.addEventListener('input',function(){
+  if(el.name==='uk')document.querySelector('input[name=uk][value=cus]').checked=false;
+  if(el.name==='uk')el.checked=true;preview()})});
+['cw','ch'].forEach(function(i){$(i).addEventListener('focus',function(){document.querySelector('input[name=uk][value=cus]').checked=true})});
+document.addEventListener('paste',function(e){
+  var it=(e.clipboardData||{}).items||[];
+  for(var i=0;i<it.length;i++)if(it[i].type.indexOf('image')===0){fromBlob(it[i].getAsFile());return}
+});
+$('bPaste').onclick=function(){
+  if(!navigator.clipboard||!navigator.clipboard.read){alert('Browser ini belum mengizinkan tempel lewat tombol. Tekan Ctrl+V di halaman ini.');return}
+  navigator.clipboard.read().then(function(items){
+    items.forEach(function(it){var t=it.types.filter(function(x){return x.indexOf('image')===0})[0];if(t)it.getType(t).then(fromBlob)});
+  }).catch(function(){alert('Tidak bisa membaca clipboard. Tekan Ctrl+V di halaman ini.')});
+};
+['dragover','drop'].forEach(function(n){document.addEventListener(n,function(e){
+  e.preventDefault();if(n==='drop'&&e.dataTransfer.files[0])fromBlob(e.dataTransfer.files[0]);
+})});
+$('bDl').onclick=function(){
+  if(!src)return;var s=outSize(),c=warp(s.w,s.h),jp=fmt==='jpg';
+  c.toBlob(function(bl){
+    var name='hasil-lurus.'+(jp?'jpg':'png');
+    if(!(window.claude&&window.claude.use)){
+      var u=URL.createObjectURL(bl),a=document.createElement('a');
+      a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();
+      setTimeout(function(){URL.revokeObjectURL(u)},4000);return;
+    }
+    bl.arrayBuffer().then(function(buf){
+      return claude.use('downloads').then(function(d){
+        if(!d){alert('Fitur unduh tidak tersedia di tampilan ini.');return}
+        return d.save({filename:'hasil-lurus.'+(jp?'jpg':'png'),data:new Uint8Array(buf)});
+      });
+    }).catch(function(e){if(!e||e.code!=='declined')alert('Unduhan gagal: '+((e&&e.message)||'coba lagi'))});
+  },jp?'image/jpeg':'image/png',.95);
+};
+window.addEventListener('resize',fit);
+})();
+</script>
+</body>
+</html>
