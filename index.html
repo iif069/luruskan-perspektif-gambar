@@ -73,6 +73,9 @@ h1{margin:0;font-size:22px;font-weight:700}
 .row{display:flex;flex-wrap:wrap;gap:8px}
 .row .mig-btn{flex:1 0 auto}
 #cus{display:none}
+.mig-choice__item{display:inline-flex;align-items:center;justify-content:center;gap:8px}
+#empty{cursor:pointer;display:flex;flex-direction:column;align-items:center}
+#empty:hover{background:var(--color-page)}
 #prev{min-height:140px;background:var(--color-page);border-radius:var(--radius-card);display:flex;align-items:center;justify-content:center;padding:12px;color:var(--color-muted);font-size:12px}
 #prev canvas{max-width:100%;max-height:200px;border-radius:8px}
 .bot{display:flex;flex-direction:column;gap:8px;padding:12px 20px 16px;background:var(--color-page)}
@@ -81,10 +84,10 @@ h1{margin:0;font-size:22px;font-weight:700}
 @media (min-width:960px){
   .top{padding:24px 32px 8px}h1{font-size:26px}
   .body{flex-direction:row;align-items:flex-start;padding:8px 32px 16px;gap:16px}
-  .stage{flex:1 1 0;min-width:0}.panel{flex:0 0 360px}
-  .bot{padding:12px 32px 20px;align-items:flex-end}
-  .bot .mig-btn{max-width:360px}
-  #info{text-align:right;max-width:360px;width:100%}
+  .stage{flex:1 1 0;min-width:0}.panel{order:-1;flex:0 0 420px}
+  .bot{padding:12px 32px 20px;align-items:flex-start}
+  .bot .mig-btn{max-width:420px}
+  #info{text-align:left;max-width:420px;width:100%}
 }
 </style>
 </head>
@@ -95,11 +98,7 @@ h1{margin:0;font-size:22px;font-weight:700}
     <img class="logo" src="data:image/png;base64,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" width="44" height="44" alt="MIG Digital Printing">
     <h1>Luruskan perspektif</h1>
   </div>
-  <div class="acts">
-    <button class="mig-btn mig-btn--secondary" id="bPaste"><svg viewBox="0 0 24 24" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>Tempel foto</button>
-    <button class="mig-btn mig-btn--secondary" id="bUp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>Unggah foto</button>
-    <input type="file" id="file" accept="image/*" hidden>
-  </div>
+  <input type="file" id="file" accept="image/*" hidden>
 </header>
 
 <main class="mig-screen__body">
@@ -107,7 +106,7 @@ h1{margin:0;font-size:22px;font-weight:700}
   <section class="mig-card mig-card--lg stage">
     <p id="hint" class="mig-hint">Unggah foto, lalu geser 4 titik ungu ke pojok objek.</p>
     <div id="wrap">
-      <div id="empty"><strong>Belum ada foto</strong>Unggah, tempel (Ctrl+V), atau seret file ke sini.</div>
+      <div id="empty" role="button" tabindex="0"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:28px;height:28px;margin-bottom:8px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg><strong>Belum ada foto</strong>Klik di sini untuk unggah, atau tempel (Ctrl+V), atau seret file ke sini.</div>
       <canvas id="view"></canvas>
       <canvas id="loupe" width="120" height="120"></canvas>
     </div>
@@ -138,8 +137,8 @@ h1{margin:0;font-size:22px;font-weight:700}
     <div class="sec">
       <span class="mig-label" id="lf">Format file</span>
       <div class="mig-choice" role="radiogroup" aria-labelledby="lf">
-        <button class="mig-choice__item" role="radio" aria-checked="true" id="fPng">PNG</button>
-        <button class="mig-choice__item" role="radio" aria-checked="false" id="fJpg">JPG</button>
+        <button class="mig-choice__item" role="radio" aria-checked="true" id="fPng"><svg viewBox="0 0 24 24" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>PNG</button>
+        <button class="mig-choice__item" role="radio" aria-checked="false" id="fJpg"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><circle cx="10" cy="12" r="2"/><path d="m20 17-1.296-1.296a2.41 2.41 0 0 0-3.408 0L9 22"/></svg>JPG</button>
       </div>
     </div>
   </aside>
@@ -293,7 +292,8 @@ function setFmt(f){fmt=f;$('fPng').setAttribute('aria-checked',f==='png');$('fJp
 $('fPng').onclick=function(){setFmt('png')};$('fJpg').onclick=function(){setFmt('jpg')};
 $('bRot').onclick=rotate;
 $('bRes').onclick=function(){if(src){resetPts();draw();preview()}};
-$('bUp').onclick=function(){$('file').click()};
+$('empty').onclick=function(){$('file').click()};
+$('empty').onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();$('file').click()}};
 $('file').onchange=function(e){fromBlob(e.target.files[0]);e.target.value=''};
 $('uk').addEventListener('change',function(){$('cus').style.display=this.value==='cus'?'flex':'none';preview()});
 ['cw','ch'].forEach(function(i){$(i).addEventListener('input',preview)});
@@ -301,14 +301,6 @@ document.addEventListener('paste',function(e){
   var it=(e.clipboardData||{}).items||[];
   for(var i=0;i<it.length;i++)if(it[i].type.indexOf('image')===0){fromBlob(it[i].getAsFile());return}
 });
-$('bPaste').onclick=function(){
-  if(!navigator.clipboard||!navigator.clipboard.read){toast('Tekan Ctrl+V di halaman ini untuk menempel foto',true);return}
-  navigator.clipboard.read().then(function(items){
-    var found=false;
-    items.forEach(function(it){var t=it.types.filter(function(x){return x.indexOf('image')===0})[0];if(t){found=true;it.getType(t).then(fromBlob)}});
-    if(!found)toast('Clipboard tidak berisi gambar',true);
-  }).catch(function(){toast('Clipboard tidak terbaca. Tekan Ctrl+V di halaman ini',true)});
-};
 ['dragover','drop'].forEach(function(n){document.addEventListener(n,function(e){
   e.preventDefault();if(n==='drop'&&e.dataTransfer.files[0])fromBlob(e.dataTransfer.files[0]);
 })});
